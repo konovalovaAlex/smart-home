@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Smart Home</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function App() {
+      const [devices, setDevices] = useState([]);
+
+      const load = () => {
+        fetch("http://localhost:8000/devices")
+          .then(r => r.json())
+          .then(d => setDevices(Object.values(d)));
+      };
+
+      useEffect(() => { load(); }, []);
+
+      const toggle = (id) => {
+        fetch(`http://localhost:8000/devices/${id}/toggle`, { method: "POST" })
+          .then(() => load());
+      };
+
+      return (
+        <div style={{fontFamily: "Arial", padding: 20}}>
+          <h1>Умный дом</h1>
+          <ul>
+            {devices.map(d => (
+              <li key={d.id}>
+                {d.name} — <b>{d.status}</b>{" "}
+                <button onClick={() => toggle(d.id)}>Переключить</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

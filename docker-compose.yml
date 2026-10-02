@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=postgres
+      - DB_USER=admin
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=smarthome_db
+    depends_on:
+      - postgres
+    networks:
+      - smart_home_network
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - smart_home_network
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: smarthome_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - smart_home_network
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - smart_home_network
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - smart_home_network
+
+volumes:
+  postgres_data:
+
+networks:
+  smart_home_network:
+    driver: bridge
